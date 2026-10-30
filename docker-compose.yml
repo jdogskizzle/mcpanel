@@ -1,0 +1,39 @@
+# Minecraft panel: start/stop servers, restore backups, change versions, add servers.
+# Everything specific to one machine lives in this file: the folders, the user, the time
+# zone, the Docker network and the panel's address. Change these to suit your setup.
+#
+# It controls Docker through the socket, which is equivalent to root on this machine.
+# That's why it has no published port: put it behind a reverse proxy with a login
+# (here: Caddy at https://jdogskizzle.mooo.com/mcpanel/, home network only + password).
+#
+# Folders must be mounted at the same paths as on the host, so the docker compose
+# commands the panel runs resolve ./<server> etc. to the real host folders.
+name: mcpanel
+services:
+  mcpanel:
+    build: .
+    image: mcpanel:local
+    container_name: mcpanel
+    restart: unless-stopped
+    environment:
+      - MC_DIR=/home/jdogskizzle/docker/minecraft          # servers.yml + one folder per server
+      - BACKUP_DIR=/srv/storage/backups/minecraft          # backups go to <BACKUP_DIR>/<server>/
+      - IMPORT_DIR=/home/jdogskizzle/minecraft             # optional: old servers offered as "copy from"
+      - PUID=1000                                          # owner of server files and backups
+      - PGID=1000
+      - TZ=America/Los_Angeles
+      - COMPOSE_PROJECT=minecraft                          # project name of the generated compose file
+      - NETWORK=apps                                       # optional: network servers with "network: true" join
+      - PANEL_URL=https://jdogskizzle.mooo.com/mcpanel/    # optional: shown in the generated files' headers
+      - FORWARD_TO=192.168.5.2 in pfSense                  # optional: port-forward hint after adding a server
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      # Same path inside and outside; keep these in step with the settings above.
+      - /home/jdogskizzle/docker/minecraft:/home/jdogskizzle/docker/minecraft
+      - /srv/storage/backups/minecraft:/srv/storage/backups/minecraft
+      - /home/jdogskizzle/minecraft:/home/jdogskizzle/minecraft:ro
+    networks: [apps]                                       # the network your reverse proxy is on
+
+networks:
+  apps:
+    external: true

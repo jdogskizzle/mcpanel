@@ -1,0 +1,409 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Minecraft Servers</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><rect width='16' height='16' rx='3' fill='%2359a14f'/><rect x='3' y='4' width='3' height='3' fill='%23233'/><rect x='10' y='4' width='3' height='3' fill='%23233'/><rect x='6' y='8' width='4' height='5' fill='%23233'/></svg>">
+<style>
+:root {
+  --bg: #f4f5f2; --card: #ffffff; --text: #1d211c; --muted: #646b62; --line: #dfe2dc;
+  --accent: #3f7d36; --accent-text: #fff; --danger: #b3261e; --warn-bg: #fff4d6; --warn-text: #6b4e00;
+  --run: #2e7d32; --sleep: #5c6bc0; --stop: #8a8f87; --start: #c77c02; --chip: #eef0eb;
+  --code-bg: #f0f2ee; --shadow: 0 1px 2px rgba(0,0,0,.06), 0 1px 8px rgba(0,0,0,.04);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #141613; --card: #1d201c; --text: #e7eae4; --muted: #9aa196; --line: #30352e;
+    --accent: #6fbf62; --accent-text: #0f140e; --danger: #f2827a; --warn-bg: #3a3218; --warn-text: #f3d98b;
+    --run: #74c476; --sleep: #9fa8da; --stop: #8a8f87; --start: #f0b04c; --chip: #272b25;
+    --code-bg: #161915; --shadow: none;
+  }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--text);
+  font: 15px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; }
+header { max-width: 1100px; margin: 0 auto; padding: 24px 16px 8px; display: flex;
+  align-items: center; gap: 12px; flex-wrap: wrap; }
+h1 { font-size: 22px; margin: 0; flex: 1; }
+.updated { color: var(--muted); font-size: 13px; }
+main { max-width: 1100px; margin: 0 auto; padding: 8px 16px 40px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 14px; }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 12px;
+  padding: 16px; box-shadow: var(--shadow); display: flex; flex-direction: column; gap: 10px; }
+.card-head { display: flex; align-items: center; gap: 10px; }
+.card-head h2 { font-size: 18px; margin: 0; flex: 1; text-transform: capitalize; }
+.pill { font-size: 12px; font-weight: 600; padding: 3px 9px; border-radius: 999px;
+  display: inline-flex; align-items: center; gap: 6px; background: var(--chip); }
+.pill::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+.s-running { color: var(--run); } .s-sleeping { color: var(--sleep); }
+.s-stopped, .s-missing, .s-unknown { color: var(--stop); } .s-starting, .s-busy { color: var(--start); }
+.facts { display: grid; grid-template-columns: auto 1fr; gap: 3px 12px; font-size: 14px; margin: 0; }
+.facts dt { color: var(--muted); } .facts dd { margin: 0; overflow-wrap: anywhere; }
+.row { display: flex; gap: 8px; flex-wrap: wrap; }
+button, .btn { font: inherit; font-size: 14px; border: 1px solid var(--line); background: var(--card);
+  color: var(--text); padding: 6px 12px; border-radius: 8px; cursor: pointer; }
+button:hover:not(:disabled) { border-color: var(--muted); }
+button:disabled { opacity: .45; cursor: not-allowed; }
+button.primary { background: var(--accent); color: var(--accent-text); border-color: var(--accent); font-weight: 600; }
+button.danger { color: var(--danger); }
+button.link { border: none; background: none; padding: 4px 0; color: var(--accent); }
+.backups { border-top: 1px solid var(--line); padding-top: 8px; display: none; }
+.backups.open { display: block; }
+.backup { display: flex; align-items: center; gap: 8px; padding: 5px 0; font-size: 14px;
+  border-bottom: 1px dashed var(--line); }
+.backup:last-child { border-bottom: none; }
+.backup span { flex: 1; } .backup small { color: var(--muted); }
+.muted { color: var(--muted); font-size: 13px; }
+section.activity { margin-top: 28px; }
+section.activity h2 { font-size: 16px; margin: 0 0 8px; }
+.job { background: var(--card); border: 1px solid var(--line); border-radius: 10px; margin-bottom: 8px; }
+.job summary { padding: 8px 12px; cursor: pointer; display: flex; gap: 10px; align-items: center; }
+.job summary b { text-transform: capitalize; }
+.job pre { margin: 0; padding: 10px 12px; background: var(--code-bg); border-top: 1px solid var(--line);
+  font-size: 12px; max-height: 320px; overflow: auto; white-space: pre-wrap; word-break: break-all;
+  border-radius: 0 0 10px 10px; }
+.j-done { color: var(--run); } .j-failed { color: var(--danger); } .j-running { color: var(--start); }
+dialog { border: 1px solid var(--line); border-radius: 14px; background: var(--card); color: var(--text);
+  padding: 0; width: min(460px, calc(100vw - 32px)); }
+dialog::backdrop { background: rgba(0,0,0,.45); }
+dialog form { padding: 18px; display: flex; flex-direction: column; gap: 12px; }
+dialog h3 { margin: 0; font-size: 18px; }
+label { display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: var(--muted); }
+label.check { flex-direction: row; align-items: center; gap: 8px; color: var(--text); font-size: 14px; }
+label.check.inline { display: inline-flex; gap: 6px; }
+label.check input { width: 16px; height: 16px; margin: 0; accent-color: var(--accent); }
+input, select { font: inherit; font-size: 15px; padding: 7px 9px; border-radius: 8px;
+  border: 1px solid var(--line); background: var(--bg); color: var(--text); }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.note { background: var(--warn-bg); color: var(--warn-text); padding: 8px 10px; border-radius: 8px; font-size: 13px; }
+.err { color: var(--danger); font-size: 13px; min-height: 1em; }
+.toast { position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%); background: var(--text);
+  color: var(--bg); padding: 8px 14px; border-radius: 8px; font-size: 14px; display: none; max-width: calc(100vw - 32px); }
+</style>
+</head>
+<body>
+<header>
+  <h1>Minecraft servers</h1>
+  <span class="updated" id="updated"></span>
+  <button class="primary" id="addBtn">+ Add server</button>
+</header>
+<main>
+  <div class="grid" id="grid"><p class="muted">Loading…</p></div>
+  <section class="activity">
+    <h2>Activity</h2>
+    <div id="jobs"><p class="muted">Nothing yet.</p></div>
+  </section>
+</main>
+
+<dialog id="versionDlg"><form method="dialog" id="versionForm">
+  <h3>Version for <span id="vName"></span></h3>
+  <div class="two">
+    <label>Server type<select name="type" id="vType"></select></label>
+    <label>Java<select name="java" id="vJava"></select></label>
+  </div>
+  <label id="vVersionWrap">Game version<input name="version" id="vVersion" list="vList" autocomplete="off"></label>
+  <datalist id="vList"></datalist>
+  <label id="vJarWrap">Server jar (in the server folder)<select name="jar" id="vJar"></select></label>
+  <label>Memory<input name="memory" id="vMemory" placeholder="2G"></label>
+  <div class="note">A backup is taken first if the server is running. Going to an <b>older</b> version can damage the world; restore the backup if that happens.</div>
+  <div class="err" id="vErr"></div>
+  <div class="row" style="justify-content:flex-end">
+    <button value="cancel" formnovalidate>Cancel</button>
+    <button class="primary" id="vSave" value="default">Apply &amp; restart</button>
+  </div>
+</form></dialog>
+
+<dialog id="addDlg"><form method="dialog" id="addForm">
+  <h3>Add a server</h3>
+  <label>Name (lowercase, used for the folder)<input name="name" id="aName" placeholder="survival" required pattern="[a-z][a-z0-9-]{1,23}"></label>
+  <label>Start from<select name="import_from" id="aImport"><option value="">A new world</option></select></label>
+  <div class="two">
+    <label>Server type<select name="type" id="aType"></select></label>
+    <label>Java<select name="java" id="aJava"></select></label>
+  </div>
+  <label id="aVersionWrap">Game version<input name="version" id="aVersion" list="aList" value="LATEST" autocomplete="off"></label>
+  <datalist id="aList"></datalist>
+  <label id="aJarWrap">Server jar<select name="jar" id="aJar"></select></label>
+  <div class="two">
+    <label>Difficulty<select name="difficulty" id="aDifficulty"></select></label>
+    <label>Game mode<select name="gamemode" id="aGamemode"></select></label>
+  </div>
+  <label id="aSeedWrap">Seed (leave blank for a random world)<input name="seed" id="aSeed" maxlength="64" autocomplete="off"></label>
+  <div class="two">
+    <label>Memory<input name="memory" id="aMemory" value="2G"></label>
+    <label>Port<input name="port" id="aPort" type="number" min="1025" max="65535"></label>
+  </div>
+  <label class="check"><input type="checkbox" name="autopause" id="aPause" checked> Pause when nobody is online</label>
+  <label class="check"><input type="checkbox" name="autostart" id="aAutostart" checked> Start automatically when the server boots</label>
+  <div class="note">For friends outside your network, forward the port (TCP) to <span id="aForward">this machine on your router</span> afterwards.</div>
+  <div class="err" id="aErr"></div>
+  <div class="row" style="justify-content:flex-end">
+    <button value="cancel" formnovalidate>Cancel</button>
+    <button class="primary" value="default">Create &amp; start</button>
+  </div>
+</form></dialog>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const TYPES = ["VANILLA", "PAPER", "FABRIC", "FORGE", "NEOFORGE", "CUSTOM"];
+const TYPE_LABEL = {VANILLA: "Vanilla", PAPER: "Paper", FABRIC: "Fabric", FORGE: "Forge", NEOFORGE: "NeoForge", CUSTOM: "Custom jar"};
+const JAVA = [["java25", "Java 25"], ["java21", "Java 21"], ["java17", "Java 17"], ["java8", "Java 8"]];
+const DIFFICULTIES = [["peaceful", "Peaceful"], ["easy", "Easy"], ["normal", "Normal"], ["hard", "Hard"]];
+const GAMEMODES = [["survival", "Survival"], ["creative", "Creative"], ["adventure", "Adventure"], ["spectator", "Spectator"]];
+const STATE_LABEL = {running: "Running", sleeping: "Sleeping", stopped: "Stopped", starting: "Starting",
+  missing: "Not created", unknown: "Checking…"};
+let servers = [];
+let config = {forward_to: "", safety_dir: "the .pre-restore folder", import_dir: ""};
+const openBackups = new Set();
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"}[c]));
+
+async function api(path, opts = {}) {
+  const r = await fetch(path, {headers: {"Content-Type": "application/json"}, ...opts});
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(data.detail ? (typeof data.detail === "string" ? data.detail : JSON.stringify(data.detail)) : r.statusText);
+  return data;
+}
+function toast(msg) {
+  const t = $("toast"); t.textContent = msg; t.style.display = "block";
+  clearTimeout(toast.t); toast.t = setTimeout(() => t.style.display = "none", 4000);
+}
+const fmtSize = (b) => b > 1e9 ? (b / 1e9).toFixed(1) + " GB" : (b / 1e6).toFixed(0) + " MB";
+const fmtTime = (t) => new Date(t * 1000).toLocaleString([], {month: "short", day: "numeric", hour: "numeric", minute: "2-digit"});
+
+function suggestJava(v) {
+  if (!v || /^latest$/i.test(v)) return "java25";
+  const m = v.match(/^(\d+)\.(\d+)(?:\.(\d+))?/);
+  if (!m) return "java25";
+  const [a, b, c] = [+m[1], +m[2], +(m[3] || 0)];
+  if (a >= 26) return "java25";
+  if (a === 1 && (b > 20 || (b === 20 && c >= 5))) return "java21";
+  if (a === 1 && b >= 17) return "java17";
+  return "java8";
+}
+
+function describe(c) {
+  if (c.type === "CUSTOM") return `Custom jar · ${esc(c.jar)}`;
+  return `${TYPE_LABEL[c.type] || esc(c.type)} ${esc(c.version)}`;
+}
+
+function render() {
+  const grid = $("grid");
+  if (!servers.length) { grid.innerHTML = '<p class="muted">No servers yet.</p>'; return; }
+  grid.innerHTML = servers.map((s) => {
+    const c = s.config, st = s.status || {}, state = s.busy ? "busy" : (st.state || "unknown");
+    const label = s.busy ? "Working…" : STATE_LABEL[state] || state;
+    const up = ["running", "sleeping", "starting"].includes(st.state);
+    const ports = `${c.port}` + (c.bedrock_port ? ` · Bedrock ${c.bedrock_port}/udp` : "");
+    const players = st.players != null ? `${st.players} / ${st.max_players} online`
+      : st.state === "sleeping" ? "nobody (paused, wakes on join)" : "—";
+    const mem = st.memory ? esc(st.memory.split("/")[0].trim()) + ` used of ${esc(c.memory)}` : esc(c.memory) + " max";
+    const backups = s.backups.length ? s.backups.map((b) => `
+      <div class="backup"><span>${fmtTime(b.time)} <small>${fmtSize(b.size)}</small></span>
+        <button class="danger" data-act="restore" data-name="${esc(s.name)}" data-file="${esc(b.file)}" ${s.busy ? "disabled" : ""}>Restore</button></div>`).join("")
+      : '<p class="muted">No backups yet. The first one runs 10 minutes after the server starts.</p>';
+    return `<article class="card">
+      <div class="card-head"><h2>${esc(s.name)}</h2><span class="pill s-${state}">${label}</span></div>
+      <dl class="facts">
+        <dt>Version</dt><dd>${describe(c)}${st.running_version && c.type !== "VANILLA" ? ` <span class="muted">(${esc(st.running_version)})</span>` : ""}</dd>
+        <dt>Port</dt><dd>${ports}</dd>
+        <dt>Players</dt><dd>${players}</dd>
+        <dt>Memory</dt><dd>${mem}</dd>
+        <dt>Sleep</dt><dd>${c.autopause ? "Pauses when empty" : "Always on"}</dd>
+        <dt>Autostart</dt><dd><label class="check inline"><input type="checkbox" data-autostart="${esc(s.name)}"
+          ${c.autostart === false ? "" : "checked"} ${s.busy ? "disabled" : ""}> Start at boot</label></dd>
+      </dl>
+      <div class="row">
+        <button data-act="start" data-name="${esc(s.name)}" ${s.busy || up ? "disabled" : ""}>Start</button>
+        <button data-act="stop" data-name="${esc(s.name)}" ${s.busy || !up ? "disabled" : ""}>Stop</button>
+        <button data-act="restart" data-name="${esc(s.name)}" ${s.busy || !up ? "disabled" : ""}>Restart</button>
+        <button data-act="version" data-name="${esc(s.name)}" ${s.busy ? "disabled" : ""}>Version…</button>
+      </div>
+      <div class="row">
+        <button class="link" data-act="toggle-backups" data-name="${esc(s.name)}">${openBackups.has(s.name) ? "Hide" : "Show"} backups (${s.backups.length})</button>
+      </div>
+      <div class="backups ${openBackups.has(s.name) ? "open" : ""}">
+        ${backups}
+        <div class="row" style="margin-top:8px"><button data-act="backup" data-name="${esc(s.name)}" ${s.busy ? "disabled" : ""}>Back up now</button></div>
+      </div>
+    </article>`;
+  }).join("");
+}
+
+async function loadServers() {
+  try {
+    const d = await api("api/servers");
+    servers = d.servers;
+    $("updated").textContent = d.updated ? "Updated " + new Date(d.updated * 1000).toLocaleTimeString([], {hour: "numeric", minute: "2-digit", second: "2-digit"}) : "";
+    render();
+  } catch (e) { $("grid").innerHTML = `<p class="err">Could not load servers: ${esc(e.message)}</p>`; }
+}
+
+const openJobs = new Set();
+async function loadJobs() {
+  try {
+    const jobs = await api("api/jobs");
+    $("jobs").innerHTML = jobs.length ? jobs.map((j) => `
+      <details class="job" data-id="${j.id}" ${openJobs.has(j.id) || j.status === "running" ? "open" : ""}>
+        <summary><b>${esc(j.action)}</b> ${esc(j.server)} <span class="j-${j.status}">${j.status}</span>
+          <span class="muted" style="margin-left:auto">${fmtTime(j.started)}</span></summary>
+        <pre>${esc(j.log.join("\n"))}</pre></details>`).join("") : '<p class="muted">Nothing yet.</p>';
+    document.querySelectorAll(".job pre").forEach((p) => p.scrollTop = p.scrollHeight);
+    return jobs.some((j) => j.status === "running");
+  } catch { return false; }
+}
+document.addEventListener("toggle", (e) => {
+  if (e.target.classList?.contains("job")) {
+    e.target.open ? openJobs.add(e.target.dataset.id) : openJobs.delete(e.target.dataset.id);
+  }
+}, true);
+
+let timer = null;
+function schedule(ms) { clearTimeout(timer); timer = setTimeout(tick, ms); }
+async function tick() {
+  const running = await loadJobs();
+  await loadServers();
+  schedule(running ? 2000 : 10000);
+}
+
+async function startJob(path, body) {
+  try {
+    await api(path, {method: "POST", body: body ? JSON.stringify(body) : undefined});
+    schedule(300);
+  } catch (e) { toast(e.message); }
+}
+
+document.addEventListener("change", (e) => {
+  const name = e.target.dataset?.autostart;
+  if (!name) return;
+  const on = e.target.checked;
+  if (!on && !confirm(`Turn off autostart for ${name}?\n\nIt won't start when the server boots, and its daily backups only run while you have it started.`)) {
+    e.target.checked = true; return;
+  }
+  startJob(`api/servers/${encodeURIComponent(name)}/autostart`, {enabled: on});
+});
+
+document.addEventListener("click", (e) => {
+  const b = e.target.closest("button[data-act]");
+  if (!b) return;
+  const {act, name, file} = b.dataset;
+  if (act === "toggle-backups") { openBackups.has(name) ? openBackups.delete(name) : openBackups.add(name); render(); return; }
+  if (act === "version") return openVersion(name);
+  if (act === "stop" && !confirm(`Stop ${name}? Players online will be disconnected.`)) return;
+  if (act === "restore") {
+    const s = servers.find((x) => x.name === name), b2 = s.backups.find((x) => x.file === file);
+    if (!confirm(`Restore ${name} to ${fmtTime(b2.time)}?\n\nThe server stops, its world is replaced by this backup, then it starts again. Current files are kept in ${config.safety_dir}.`)) return;
+    return startJob(`api/servers/${encodeURIComponent(name)}/restore`, {file});
+  }
+  startJob(`api/servers/${encodeURIComponent(name)}/${act}`);
+});
+
+function fillSelect(sel, items, value) {
+  sel.innerHTML = items.map(([v, l]) => `<option value="${esc(v)}">${esc(l)}</option>`).join("");
+  if (value != null) sel.value = value;
+}
+async function fillVersions(type, list) {
+  list.innerHTML = "";
+  if (type === "CUSTOM") return;
+  try { list.innerHTML = (await api(`api/versions/${type}`)).map((v) => `<option value="${esc(v)}">`).join(""); } catch {}
+}
+async function fillJars(folder, sel, value) {
+  try {
+    const jars = await api(`api/jars?folder=${encodeURIComponent(folder)}`);
+    fillSelect(sel, jars.length ? jars.map((j) => [j, j]) : [["", "No .jar files in that folder"]], value);
+  } catch { fillSelect(sel, [["", "No .jar files"]]); }
+}
+function toggleType(type, verWrap, jarWrap) {
+  verWrap.style.display = type === "CUSTOM" ? "none" : "";
+  jarWrap.style.display = type === "CUSTOM" ? "" : "none";
+}
+
+// ---- version dialog
+let vServer = null;
+function openVersion(name) {
+  vServer = servers.find((s) => s.name === name);
+  const c = vServer.config;
+  $("vName").textContent = name; $("vErr").textContent = "";
+  fillSelect($("vType"), TYPES.map((t) => [t, TYPE_LABEL[t]]), c.type);
+  fillSelect($("vJava"), JAVA, c.java || "java25");
+  $("vVersion").value = c.version || "";
+  $("vMemory").value = c.memory;
+  toggleType(c.type, $("vVersionWrap"), $("vJarWrap"));
+  fillVersions(c.type, $("vList"));
+  fillJars(name, $("vJar"), c.jar);
+  $("versionDlg").showModal();
+}
+$("vType").addEventListener("change", (e) => { toggleType(e.target.value, $("vVersionWrap"), $("vJarWrap")); fillVersions(e.target.value, $("vList")); });
+$("vVersion").addEventListener("change", (e) => $("vJava").value = suggestJava(e.target.value));
+$("versionForm").addEventListener("submit", (e) => {
+  if (e.submitter?.value !== "default") return;
+  e.preventDefault();
+  const type = $("vType").value;
+  const body = {type, java: $("vJava").value, memory: $("vMemory").value.trim().toUpperCase()};
+  if (type === "CUSTOM") body.jar = $("vJar").value; else body.version = $("vVersion").value.trim();
+  api(`api/servers/${encodeURIComponent(vServer.name)}/version`, {method: "POST", body: JSON.stringify(body)})
+    .then(() => { $("versionDlg").close(); schedule(300); })
+    .catch((err) => $("vErr").textContent = err.message);
+});
+
+// ---- add dialog
+$("addBtn").addEventListener("click", async () => {
+  $("addForm").reset(); $("aErr").textContent = "";
+  fillSelect($("aType"), TYPES.map((t) => [t, TYPE_LABEL[t]]), "VANILLA");
+  fillSelect($("aJava"), JAVA, "java25");
+  toggleType("VANILLA", $("aVersionWrap"), $("aJarWrap"));
+  fillVersions("VANILLA", $("aList"));
+  const used = new Set(servers.flatMap((s) => [s.config.port, s.config.bedrock_port]));
+  let p = 25565; while (used.has(p)) p++;
+  $("aPort").value = p;
+  try {
+    const folders = await api("api/imports");
+    $("aImport").innerHTML = '<option value="">A new world</option>' +
+      folders.map((f) => `<option value="${esc(f)}">Copy of ${esc(config.import_dir && f.startsWith(config.import_dir + "/") ? f.slice(config.import_dir.length + 1) : f)}</option>`).join("");
+  } catch {}
+  worldOptions();
+  $("addDlg").showModal();
+});
+$("aType").addEventListener("change", (e) => {
+  toggleType(e.target.value, $("aVersionWrap"), $("aJarWrap"));
+  fillVersions(e.target.value, $("aList"));
+  if (e.target.value === "CUSTOM") fillJars($("aImport").value || "-", $("aJar"));
+});
+function worldOptions() {
+  const copying = !!$("aImport").value;
+  const keep = copying ? [["", "Keep as is"]] : [];
+  fillSelect($("aDifficulty"), keep.concat(DIFFICULTIES), copying ? "" : "normal");
+  fillSelect($("aGamemode"), keep.concat(GAMEMODES), copying ? "" : "survival");
+  $("aSeedWrap").style.display = copying ? "none" : "";
+}
+$("aImport").addEventListener("change", () => {
+  worldOptions();
+  if ($("aType").value === "CUSTOM") fillJars($("aImport").value || "-", $("aJar"));
+});
+$("aVersion").addEventListener("change", (e) => $("aJava").value = suggestJava(e.target.value));
+$("addForm").addEventListener("submit", (e) => {
+  if (e.submitter?.value !== "default") return;
+  e.preventDefault();
+  const type = $("aType").value;
+  const body = {name: $("aName").value.trim(), type, java: $("aJava").value,
+    memory: $("aMemory").value.trim().toUpperCase(), port: +$("aPort").value,
+    autopause: $("aPause").checked, autostart: $("aAutostart").checked,
+    import_from: $("aImport").value || null,
+    difficulty: $("aDifficulty").value || null, gamemode: $("aGamemode").value || null,
+    seed: $("aImport").value ? null : $("aSeed").value.trim()};
+  if (type === "CUSTOM") body.jar = $("aJar").value; else body.version = $("aVersion").value.trim();
+  api("api/servers", {method: "POST", body: JSON.stringify(body)})
+    .then(() => { $("addDlg").close(); schedule(300); })
+    .catch((err) => $("aErr").textContent = err.message);
+});
+
+api("api/config").then((c) => {
+  config = c;
+  if (c.forward_to) $("aForward").textContent = c.forward_to;
+}).catch(() => {});
+tick();
+</script>
+</body>
+</html>
