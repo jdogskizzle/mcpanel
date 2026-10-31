@@ -20,6 +20,8 @@ from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
 
+import auth
+
 
 
 def env(name: str, required: bool = True) -> str:
@@ -46,6 +48,8 @@ TZ = env("TZ")
 NETWORK = env("NETWORK", False)               # external network for servers with "network: true"
 PANEL_URL = env("PANEL_URL", False)           # where the panel is served; shown in file headers
 FORWARD_TO = env("FORWARD_TO", False)         # where to forward ports, shown after adding a server
+PANEL_USER = env("PANEL_USER")              # login name for the panel
+PANEL_PASSWORD_HASH = env("PANEL_PASSWORD_HASH")  # bcrypt hash, kept in .env
 SERVERS_FILE = MC_DIR / "servers.yml"
 COMPOSE_FILE = MC_DIR / "docker-compose.yml"
 SAFETY_DIR = MC_DIR / ".pre-restore"
@@ -85,6 +89,7 @@ COMPOSE_HEADER = f"""\
 """
 
 app = FastAPI()
+auth.setup(app, PANEL_USER, PANEL_PASSWORD_HASH)
 config_lock = threading.Lock()
 busy: set[str] = set()
 busy_lock = threading.Lock()

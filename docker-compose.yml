@@ -3,8 +3,9 @@
 # zone, the Docker network and the panel's address. Change these to suit your setup.
 #
 # It controls Docker through the socket, which is equivalent to root on this machine.
-# That's why it has no published port: put it behind a reverse proxy with a login
-# (here: Caddy at https://jdogskizzle.mooo.com/mcpanel/, home network only + password).
+# That's why it has no published port: put it behind a reverse proxy
+# (here: Caddy at https://jdogskizzle.mooo.com/mcpanel/, home network only).
+# The panel has its own login: PANEL_USER below, PANEL_PASSWORD_HASH in .env.
 #
 # Folders must be mounted at the same paths as on the host, so the docker compose
 # commands the panel runs resolve ./<server> etc. to the real host folders.
@@ -15,7 +16,9 @@ services:
     image: mcpanel:local
     container_name: mcpanel
     restart: unless-stopped
+    env_file: .env                                         # PANEL_PASSWORD_HASH='<bcrypt hash>' (not in git)
     environment:
+      - PANEL_USER=jdogskizzle                             # login name
       - MC_DIR=/home/jdogskizzle/docker/minecraft          # servers.yml + one folder per server
       - BACKUP_DIR=/srv/storage/backups/minecraft          # backups go to <BACKUP_DIR>/<server>/
       - IMPORT_DIR=/home/jdogskizzle/minecraft             # optional: old servers offered as "copy from"

@@ -25,6 +25,7 @@ All machine-specific settings are in `docker-compose.yml`:
 
 | Setting | |
 |---|---|
+| `PANEL_USER` | Login name for the panel |
 | `MC_DIR` | Folder with `servers.yml` and the server folders |
 | `BACKUP_DIR` | Backups go to `BACKUP_DIR/<server>/` |
 | `IMPORT_DIR` | Optional. Folders under it with a `server.properties` can be copied when adding a server |
@@ -40,7 +41,16 @@ on the host, so the compose commands the panel runs point at the real folders.
 `MC_DIR` also needs a `.env` with `RCON_PASSWORD`, and a `servers.yml`
 (it can start as `servers: {}`).
 
+The login password goes in a `.env` file next to `docker-compose.yml` (it is not in git),
+as a bcrypt hash in single quotes:
+
+    PANEL_PASSWORD_HASH='$2b$12$...'
+
+Make one with `docker run --rm -it mcpanel:local python hashpw.py` after the first build,
+or reuse a hash from `caddy hash-password`. Changing it signs everyone out.
+Sessions last 30 days.
+
 The panel uses the Docker socket, which is equivalent to root on the host. It has no
-published port: put it behind a reverse proxy with a login, and keep it off the internet.
+published port: put it behind a reverse proxy with HTTPS, and keep it off the internet.
 
 Then `docker compose up -d --build`.
