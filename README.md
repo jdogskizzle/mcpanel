@@ -25,7 +25,8 @@ All machine-specific settings are in `docker-compose.yml`:
 
 | Setting | |
 |---|---|
-| `PANEL_USER` | Login name for the panel |
+| `PANEL_USERNAME` | Login name for the panel |
+| `STATE_DIR` | The panel's own files (the session key); mount `./state` there |
 | `MC_DIR` | Folder with `servers.yml` and the server folders |
 | `BACKUP_DIR` | Backups go to `BACKUP_DIR/<server>/` |
 | `IMPORT_DIR` | Optional. Folders under it with a `server.properties` can be copied when adding a server |
@@ -41,14 +42,15 @@ on the host, so the compose commands the panel runs point at the real folders.
 `MC_DIR` also needs a `.env` with `RCON_PASSWORD`, and a `servers.yml`
 (it can start as `servers: {}`).
 
-The login password goes in a `.env` file next to `docker-compose.yml` (it is not in git),
-as a bcrypt hash in single quotes:
+The login comes from [formlogin](https://github.com/jdogskizzle/formlogin), which the build fetches from GitHub
+(pinned in `docker-compose.yml`; set `FORMLOGIN_SRC` to a folder to use a local copy). The password goes in
+a `.env` file next to `docker-compose.yml` (it is not in git), as a hash:
 
-    PANEL_PASSWORD_HASH='$2b$12$...'
+    PANEL_PASSWORD_HASH=scrypt:32768:8:1:...
 
-Make one with `docker run --rm -it mcpanel:local python hashpw.py` after the first build,
-or reuse a hash from `caddy hash-password`. Changing it signs everyone out.
-Sessions last 30 days.
+Make one with `docker run --rm -it mcpanel:local python -m formlogin hash` after the
+first build. (A bcrypt hash in single quotes, `'$2b$12$...'`, also still works.)
+Changing it, or deleting `state/session.key`, signs everyone out. Sessions last 30 days.
 
 The panel uses the Docker socket, which is equivalent to root on the host. It has no
 published port: put it behind a reverse proxy with HTTPS, and keep it off the internet.

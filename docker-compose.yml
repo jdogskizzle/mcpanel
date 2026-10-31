@@ -5,20 +5,24 @@
 # It controls Docker through the socket, which is equivalent to root on this machine.
 # That's why it has no published port: put it behind a reverse proxy
 # (here: Caddy at https://jdogskizzle.mooo.com/mcpanel/, home network only).
-# The panel has its own login: PANEL_USER below, PANEL_PASSWORD_HASH in .env.
+# The panel has its own login (formlogin): PANEL_USERNAME below, PANEL_PASSWORD_HASH in .env.
 #
 # Folders must be mounted at the same paths as on the host, so the docker compose
 # commands the panel runs resolve ./<server> etc. to the real host folders.
 name: mcpanel
 services:
   mcpanel:
-    build: .
+    build:
+      context: .
+      additional_contexts:
+        formlogin: ${FORMLOGIN_SRC:-https://github.com/jdogskizzle/formlogin.git#v1.0.0}   # sign-in library; FORMLOGIN_SRC=<folder> to build from a local copy
     image: mcpanel:local
     container_name: mcpanel
     restart: unless-stopped
-    env_file: .env                                         # PANEL_PASSWORD_HASH='<bcrypt hash>' (not in git)
+    env_file: .env                                         # PANEL_PASSWORD_HASH=<hash> (not in git)
     environment:
-      - PANEL_USER=jdogskizzle                             # login name
+      - PANEL_USERNAME=jdogskizzle                         # login name
+      - STATE_DIR=/state                                   # the panel's own files (session key)
       - MC_DIR=/home/jdogskizzle/docker/minecraft          # servers.yml + one folder per server
       - BACKUP_DIR=/srv/storage/backups/minecraft          # backups go to <BACKUP_DIR>/<server>/
       - IMPORT_DIR=/home/jdogskizzle/minecraft             # optional: old servers offered as "copy from"
@@ -31,6 +35,7 @@ services:
       - FORWARD_TO=192.168.5.2 in pfSense                  # optional: port-forward hint after adding a server
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
+      - ./state:/state
       # Same path inside and outside; keep these in step with the settings above.
       - /home/jdogskizzle/docker/minecraft:/home/jdogskizzle/docker/minecraft
       - /srv/storage/backups/minecraft:/srv/storage/backups/minecraft
