@@ -49,7 +49,7 @@ TZ = env("TZ")
 NETWORK = env("NETWORK", False)               # external network for servers with "network: true"
 PANEL_URL = env("PANEL_URL", False)           # where the panel is served; shown in file headers
 FORWARD_TO = env("FORWARD_TO", False)         # where to forward ports, shown after adding a server
-STATE_DIR = Path(env("STATE_DIR"))            # the panel's own files (session key)
+STATE_DIR = Path(env("STATE_DIR"))            # the panel's own files (login, session key)
 SERVERS_FILE = MC_DIR / "servers.yml"
 COMPOSE_FILE = MC_DIR / "docker-compose.yml"
 SAFETY_DIR = MC_DIR / ".pre-restore"
@@ -89,9 +89,9 @@ COMPOSE_HEADER = f"""\
 """
 
 app = FastAPI()
-# Sign-in: PANEL_USERNAME and PANEL_PASSWORD_HASH (see README).
+# Sign-in (formlogin): set the password with `python -m formlogin passwd` (see README).
 formlogin.asgi.install(app, formlogin.Login.from_env(
-    "PANEL", "mcpanel", str(STATE_DIR / "session.key"), title="Minecraft servers",
+    "PANEL", "mcpanel", str(STATE_DIR), title="Minecraft servers",
     accent=("#3f7d36", "#6fbf62"),
     icon="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><rect width='16' height='16' rx='3' fill='%2359a14f'/><rect x='3' y='4' width='3' height='3' fill='%23233'/><rect x='10' y='4' width='3' height='3' fill='%23233'/><rect x='6' y='8' width='4' height='5' fill='%23233'/></svg>"))
 config_lock = threading.Lock()

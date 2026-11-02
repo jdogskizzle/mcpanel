@@ -5,7 +5,8 @@
 # It controls Docker through the socket, which is equivalent to root on this machine.
 # That's why it has no published port: put it behind a reverse proxy
 # (here: Caddy at https://jdogskizzle.mooo.com/mcpanel/, home network only).
-# The panel has its own login (formlogin): PANEL_USERNAME below, PANEL_PASSWORD_HASH in .env.
+# The panel has its own login (formlogin): PANEL_USERNAME below; set the password with
+#   docker compose exec mcpanel python -m formlogin passwd
 #
 # Folders must be mounted at the same paths as on the host, so the docker compose
 # commands the panel runs resolve ./<server> etc. to the real host folders.
@@ -15,14 +16,14 @@ services:
     build:
       context: .
       additional_contexts:
-        formlogin: ${FORMLOGIN_SRC:-https://github.com/jdogskizzle/formlogin.git#v1.0.0}   # sign-in library; FORMLOGIN_SRC=<folder> to build from a local copy
+        formlogin: ${FORMLOGIN_SRC:-https://github.com/jdogskizzle/formlogin.git#v2.0.0}   # sign-in library; FORMLOGIN_SRC=<folder> to build from a local copy
     image: mcpanel:local
     container_name: mcpanel
     restart: unless-stopped
-    env_file: .env                                         # PANEL_PASSWORD_HASH=<hash> (not in git)
+    env_file: .env                                         # not in git
     environment:
       - PANEL_USERNAME=jdogskizzle                         # login name
-      - STATE_DIR=/state                                   # the panel's own files (session key)
+      - STATE_DIR=/state                                   # the panel's own files (login, session key)
       - MC_DIR=/home/jdogskizzle/docker/minecraft          # servers.yml + one folder per server
       - BACKUP_DIR=/srv/storage/backups/minecraft          # backups go to <BACKUP_DIR>/<server>/
       - IMPORT_DIR=/home/jdogskizzle/minecraft             # optional: old servers offered as "copy from"
